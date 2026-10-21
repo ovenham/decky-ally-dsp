@@ -39,6 +39,19 @@
         "sha256": "9b0481de5cc3a474fb941031948f26e44cb4efad80a3e040290748bd7f9e87c2",
         "size": 8807856
       }
+    },
+    "19541043": {
+      "name": "ROG Xbox Ally X20 (RC74XA)",
+      "_comment": "SoundWire: keyed by the SUBSYS token of the Dolby tuning name (PCI subsystem 1043:1954 as device then vendor). The ASUS API answers for this model only with model=RC74XA&cpu=RC74XA.",
+      "asus_api": "https://www.asus.com/support/webapi/ProductV2/GetPDDrivers?website=us&model=RC74XA&pdhashedid=&cpu=RC74XA&osid=52",
+      "package": {
+        "title": "Dolby Atmos driver",
+        "version": "V11.605.945.20",
+        "release_date": "2026/06/26",
+        "url": "https://dlcdnets.asus.com/pub/ASUS/IOTHMD/Image/Software/SoftwareandUtility/17786/ASUS_Z_V11.605.945.20_17786_2.exe",
+        "sha256": "54578a26736221348c6973357b90b7ef055be54f71056e5ac9f62f91d7de9ef9",
+        "size": 10885040
+      }
     }
   }
 }

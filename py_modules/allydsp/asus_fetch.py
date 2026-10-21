@@ -189,11 +189,23 @@ def list_7z(payload: str) -> List[str]:
     return re.findall(r"^Path = (.+)$", r.out, re.M)
 
 
-def select_paths(entries: List[str], dev: str, ssid: str) -> Dict[str, Optional[str]]:
-    xml_re = re.compile(rf"(^|/)DEV_{re.escape(dev)}_SUBSYS_{re.escape(ssid)}.*\.xml$", re.I)
-    inf_re = re.compile(r"(^|/)dax3_ext_rtk\.inf$", re.I)
-    xml = next((e for e in entries if xml_re.search(e) and "_settings" not in e.lower()), None)
-    inf = next((e for e in entries if inf_re.search(e)), None)
+def select_paths(entries: List[str], dev: Optional[str], ssid: str,
+                 sdw: Optional[List[Dict[str, str]]] = None) -> Dict[str, Optional[str]]:
+    """Pick the playback tuning and its extension INF.
+
+    HDA tunings are named DEV_<codec>_SUBSYS_<ssid>...xml. SoundWire tunings are
+    SOUNDWIRE_[SDCAFUNCTION_NN_]MAN_<man>_FUNC_<nnnn>_SUBSYS_<ssid>.xml (or SDW_...). FUNC is the SDCA
+    function index (the X20's TAS2783 pair is FUNC_0000), not the part id, so match the manufacturer only."""
+    if sdw:
+        alts = "|".join(sorted({re.escape(i["man"]) for i in sdw}))
+        xml_re = re.compile(rf"(^|/)(SOUNDWIRE|SDW)_[^/]*MAN_({alts})_FUNC_[0-9A-F]{{4}}_SUBSYS_{re.escape(ssid)}[^/]*\.xml$", re.I)
+    else:
+        xml_re = re.compile(rf"(^|/)DEV_{re.escape(dev or '')}_SUBSYS_{re.escape(ssid)}.*\.xml$", re.I)
+    inf_re = re.compile(r"(^|/)dax3_ext_[^/]*\.inf$", re.I)
+    skip = ("_settings", "_dmic", "_amic")
+    xml = next((e for e in entries if xml_re.search(e) and not any(k in e.lower() for k in skip)), None)
+    infs = [e for e in entries if inf_re.search(e)]
+    inf = next((e for e in infs if e.lower().endswith("dax3_ext_rtk.inf")), infs[0] if infs else None)
     return {"xml": xml, "inf": inf}
 
 
@@ -229,7 +241,8 @@ def inf_mentions(inf_path: str, ssid: str) -> bool:
 
 def extract_dax3(exe_path: str, codec: Dict[str, Any], progress: Progress = None,
                  package: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    dev, ssid = codec["dev"].upper(), codec["ssid"].upper()
+    dev, ssid = (codec.get("dev") or "").upper(), codec["ssid"].upper()
+    sdw = [{"man": i["man"].upper(), "part": i["part"].upper()} for i in codec.get("sdw") or []]
     os.makedirs(paths.DAX3_DIR, exist_ok=True)
     work = os.path.join(paths.TMP_DIR, "extract")
     shutil.rmtree(work, ignore_errors=True)
@@ -244,9 +257,10 @@ def extract_dax3(exe_path: str, codec: Dict[str, Any], progress: Progress = None
     if progress:
         progress(30, "listing archive")
     entries = list_7z(payload)
-    sel = select_paths(entries, dev, ssid)
+    sel = select_paths(entries, dev, ssid, sdw)
     if not sel["xml"]:
-        raise NoTuning(f"Package contains no tuning for DEV_{dev}_SUBSYS_{ssid}")
+        what = f"SoundWire SUBSYS_{ssid}" if sdw else f"DEV_{dev}_SUBSYS_{ssid}"
+        raise NoTuning(f"Package contains no tuning for {what}")
     targets = [sel["xml"]] + ([sel["inf"]] if sel["inf"] else [])
     if progress:
         progress(50, "extracting")

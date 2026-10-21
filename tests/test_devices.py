@@ -40,7 +40,7 @@ SAMPLE = {"asus_cdn": "https://cdn.example", "devices": {
 
 def test_shipped_registry_has_all_devices():
     reg = devices.load_registry()["devices"]
-    assert set(reg) == {"10431384", "10431394", "10431eb3"}
+    assert set(reg) == {"10431384", "10431394", "10431eb3", "19541043"}
     for ssid, dev in reg.items():
         assert ssid == ssid.lower()
         assert dev["name"] and dev["asus_api"].startswith("https://www.asus.com/support/webapi/ProductV2/GetPDDrivers?")

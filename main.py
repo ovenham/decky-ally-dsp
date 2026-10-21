@@ -218,7 +218,7 @@ class Plugin:
     async def import_xml(self, path: str) -> Dict[str, Any]:
         codec = await asyncio.to_thread(hardware.codec_info)
         if not codec:
-            raise RuntimeError("no Realtek codec found")
+            raise RuntimeError("no supported speaker codec found")
         prov = await asyncio.to_thread(asus_fetch.import_xml, path, codec)
         return {"ok": True, "provenance": prov}
 

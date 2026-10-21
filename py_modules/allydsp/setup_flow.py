@@ -82,7 +82,7 @@ def run_setup(progress: Progress, force: bool = False, use_network: bool = True,
     hw = hardware.summary()
     codec = hw.get("codec")
     if not codec:
-        raise RuntimeError("No Realtek HDA codec found in /proc/asound")
+        raise RuntimeError("No supported speaker codec found (Realtek HDA or SoundWire)")
     if not codec["supported"] and not allow_unsupported:
         raise RuntimeError(f"Unsupported device: codec subsystem {codec['ssid']} (supported: {', '.join(devices.supported_ssids())})")
     sink = hw.get("sink")

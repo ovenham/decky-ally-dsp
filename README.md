@@ -30,11 +30,19 @@ keep working, headphones pause the chain.
 | ROG Xbox Ally X (RC73XA) | 1043:1384 | developed and tested on SteamOS 3.8.16 |
 | ROG Xbox Ally (RC73YA) | 1043:1394 | tuning is in the same ASUS package, untested |
 | ROG Ally X (2024, RC72LA) | 1043:1EB3 | tested on SteamOS 3.8.28 by a contributor |
+| ROG Xbox Ally X20 (RC74XA) | 1043:1954 (SoundWire) | extraction and conversion checked off-device; needs working speakers first ([X20 speaker fix](https://github.com/ovenham/rog-ally-x20-steamos-speaker-qam-fix)) |
 
 Each device has its own entry in `defaults/fallback-sources.json`: the ASUS
 support API query and a pinned package (URL, SHA-256, size). The RC72LA uses an
 older ASUS package (V9.816.706.24) because the Xbox Ally package has no tuning
 for its codec. To add a device, add its lowercase codec subsystem id to that file.
+
+SoundWire devices such as the X20 have no HDA codec. The plugin reads the
+SoundWire peripherals from `/sys/bus/soundwire/devices` and the audio device's
+PCI subsystem, and keys the device by the `SUBSYS_` token of Dolby's
+`SOUNDWIRE_..._MAN_<man>_FUNC_<nnnn>_SUBSYS_<device><vendor>.xml` tuning name
+(`19541043` for the X20). It targets the UCM speaker sink (`...HiFi__Speaker__sink`);
+headphones have their own sink there, so the chain never sits in front of them.
 
 Requirements: SteamOS 3.8 or newer, Decky Loader, internet access during setup
 (10 MB ASUS package plus about 220 MB numpy/scipy for the converter).

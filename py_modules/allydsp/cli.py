@@ -100,7 +100,7 @@ def cmd_update_verify(a):
 def cmd_import_xml(a):
     codec = hardware.codec_info()
     if not codec:
-        sys.exit("no Realtek codec found")
+        sys.exit("no supported speaker codec found")
     _p(asus_fetch.import_xml(a.path, codec))
 
 

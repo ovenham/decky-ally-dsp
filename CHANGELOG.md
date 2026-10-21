@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Support SoundWire speaker audio and the ROG Xbox Ally X20 (RC74XA, PCI
+  subsystem 1043:1954) with its ASUS package (Dolby Atmos driver
+  V11.605.945.20). Detection falls back to the SoundWire bus when there is no
+  Realtek HDA codec, tuning lookup matches `SOUNDWIRE_`/`SDW_` names, and the
+  speaker sink lookup accepts UCM speaker sinks.
+
 ## 0.1.10 (2026-10-03)
 
 - Setup and diagnostics pages fit the handheld screen: the setup controls come
