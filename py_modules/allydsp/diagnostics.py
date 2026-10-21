@@ -49,7 +49,7 @@ def collect() -> Dict[str, Any]:
         "kernel": hw.get("kernel"),
         "dmi": hw.get("dmi"),
         "codec": codec,
-        "tas": hardware.tas_controls(codec["card"]) if codec else {},
+        "tas": hardware.tas_controls(codec["card"]) if codec and codec.get("card") is not None else {},
         "sink": hw.get("sink"),
         "route": hw.get("route"),
         "pipewire": tool_version(["pipewire", "--version"]),
