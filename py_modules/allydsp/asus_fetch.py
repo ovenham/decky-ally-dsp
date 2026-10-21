@@ -194,10 +194,11 @@ def select_paths(entries: List[str], dev: Optional[str], ssid: str,
     """Pick the playback tuning and its extension INF.
 
     HDA tunings are named DEV_<codec>_SUBSYS_<ssid>...xml. SoundWire tunings are
-    SOUNDWIRE_[SDCAFUNCTION_NN_]MAN_<man>_FUNC_<part>_SUBSYS_<ssid>.xml (or SDW_...), one per peripheral."""
+    SOUNDWIRE_[SDCAFUNCTION_NN_]MAN_<man>_FUNC_<nnnn>_SUBSYS_<ssid>.xml (or SDW_...). FUNC is the SDCA
+    function index (the X20's TAS2783 pair is FUNC_0000), not the part id, so match the manufacturer only."""
     if sdw:
-        alts = "|".join(f"MAN_{re.escape(i['man'])}_FUNC_{re.escape(i['part'])}" for i in sdw)
-        xml_re = re.compile(rf"(^|/)(SOUNDWIRE|SDW)_[^/]*({alts})_SUBSYS_{re.escape(ssid)}[^/]*\.xml$", re.I)
+        alts = "|".join(sorted({re.escape(i["man"]) for i in sdw}))
+        xml_re = re.compile(rf"(^|/)(SOUNDWIRE|SDW)_[^/]*MAN_({alts})_FUNC_[0-9A-F]{{4}}_SUBSYS_{re.escape(ssid)}[^/]*\.xml$", re.I)
     else:
         xml_re = re.compile(rf"(^|/)DEV_{re.escape(dev or '')}_SUBSYS_{re.escape(ssid)}.*\.xml$", re.I)
     inf_re = re.compile(r"(^|/)dax3_ext_[^/]*\.inf$", re.I)

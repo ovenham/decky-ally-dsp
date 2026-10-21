@@ -4,7 +4,7 @@ import os
 from allydsp import asus_fetch, hardware
 
 
-def _sysfs(tmp_path, ids=(("0102", "2783"), ("0102", "2783"), ("025d", "0721")), subsys=("0x1043", "0x1f2c")):
+def _sysfs(tmp_path, ids=(("0102", "2783"), ("0102", "2783"), ("025d", "0721")), subsys=("0x1043", "0x1954")):
     bus = tmp_path / "sdw"
     bus.mkdir()
     for n, (man, part) in enumerate(ids):
@@ -43,10 +43,10 @@ def test_subsys_token_is_device_then_vendor():
 def test_soundwire_codec_info(tmp_path):
     bus, pci, cards = _sysfs(tmp_path)
     c = hardware.soundwire_codec_info(bus, pci, cards)
-    assert c["bus"] == "soundwire" and c["ssid"] == "1f2c1043" and c["pci"] == "0000:c4:00.5"
+    assert c["bus"] == "soundwire" and c["ssid"] == "19541043" and c["pci"] == "0000:c4:00.5"
     assert c["card"] == 1 and c["card_id"] == "amdsoundwire"
     assert c["codec"] == "SoundWire TI TAS2783, Realtek RT721"
-    assert c["supported"] is False  # no X20 registry entry until its package is pinned
+    assert c["supported"] is True and c["model"] == "ROG Xbox Ally X20 (RC74XA)"
 
 
 def test_soundwire_codec_info_needs_bus_and_pci(tmp_path):
@@ -56,22 +56,25 @@ def test_soundwire_codec_info_needs_bus_and_pci(tmp_path):
 
 
 SDW = [{"man": "0102", "part": "2783"}, {"man": "025D", "part": "0721"}]
+# Names as they appear in the ASUS Dolby Atmos driver V11.605.945.20 (the X20 is SUBSYS_19541043).
 ENTRIES = [
-    "x/dax3_ext_ti.inf",
-    "x/SOUNDWIRE_SDCAFUNCTION_01_MAN_0102_FUNC_2783_SUBSYS_1F2C1043_settings.xml",
-    "x/SOUNDWIRE_SDCAFUNCTION_01_MAN_0102_FUNC_2783_SUBSYS_1F2C1043.xml",
-    "x/SOUNDWIRE_MAN_025D_FUNC_0721_SUBSYS_1F2C1043_dmic.xml",
+    "x/dax3_ext_rtk.inf",
+    "x/SOUNDWIRE_SDCAFUNCTION_10_MAN_0102_FUNC_0000_SUBSYS_19641043.xml",
+    "x/SOUNDWIRE_SDCAFUNCTION_10_MAN_0102_FUNC_0000_SUBSYS_19541043_settings.xml",
+    "x/SOUNDWIRE_SDCAFUNCTION_10_MAN_0102_FUNC_0000_SUBSYS_19541043.xml",
+    "x/SOUNDWIRE_MAN_025D_FUNC_0721_SUBSYS_19541043_dmic.xml",
     "x/DEV_0294_SUBSYS_10431384_PCI_SUBSYS_13841043.xml",
 ]
 
 
 def test_select_paths_soundwire():
-    sel = asus_fetch.select_paths(ENTRIES, None, "1F2C1043", SDW)
-    assert sel["xml"].endswith("FUNC_2783_SUBSYS_1F2C1043.xml")
-    assert sel["inf"].endswith("dax3_ext_ti.inf")
-    assert asus_fetch.select_paths(ENTRIES, None, "1F2D1043", SDW)["xml"] is None
-    sdw_short = ["y/SDW_MAN_0102_FUNC_2783_SUBSYS_1F2C1043.xml"]
-    assert asus_fetch.select_paths(sdw_short, None, "1F2C1043", SDW)["xml"] == sdw_short[0]
+    sel = asus_fetch.select_paths(ENTRIES, None, "19541043", SDW)
+    assert sel["xml"].endswith("MAN_0102_FUNC_0000_SUBSYS_19541043.xml")
+    assert sel["inf"].endswith("dax3_ext_rtk.inf")
+    assert asus_fetch.select_paths(ENTRIES, None, "19551043", SDW)["xml"] is None
+    assert asus_fetch.select_paths(ENTRIES, None, "19541043", [{"man": "01FA", "part": "3556"}])["xml"] is None
+    sdw_short = ["y/SDW_MAN_0102_FUNC_0001_SUBSYS_19541043.xml"]
+    assert asus_fetch.select_paths(sdw_short, None, "19541043", SDW)["xml"] == sdw_short[0]
 
 
 def test_select_paths_hda_unchanged():
